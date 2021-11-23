@@ -1,7 +1,7 @@
 import uuid
 from jwt import encode, decode
 import server.services.session_services as session_services
-import server.utils.security as security
+import server.utils.crypto as crypto
 
 JWT_SECRET = 'secretpassphrase'
 JWT_ALGORITHM = 'HS256'
@@ -33,7 +33,7 @@ def refresh_access_token(refresh_token, user_agent):
         }
 
     is_same_fingerprint = session_services.check_fingerprint(
-        refresh_token, security.encode_user_agent(user_agent)
+        refresh_token, crypto.encode_user_agent(user_agent)
     )
 
     if not is_same_fingerprint:

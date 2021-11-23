@@ -1,7 +1,13 @@
 import uuid
 
 
-accounts = []
+accounts = [
+    {
+        'user_id': '123',
+        'login': 'admin',
+        'password': 'admin'
+    }
+]
 
 
 def create_account(login, password):
@@ -12,8 +18,6 @@ def create_account(login, password):
         'login': login,
         'password': password
     }
-    print('CREATE ACCOUNT')
-    print(new_account)
 
     accounts.append(new_account)
 

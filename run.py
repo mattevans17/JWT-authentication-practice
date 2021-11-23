@@ -1,8 +1,10 @@
-from flask import Flask, request, jsonify, make_response, render_template
+from flask import Flask, request, jsonify, make_response, render_template, abort
 import server.services.account_service as account_service
 import server.services.auth_service as auth_service
 import server.services.token_service as token_service
 import server.config as config
+import server.services.data_api as data_api
+import server.services.session_services as session_services
 
 app = Flask(__name__, template_folder='client/', static_folder='client/')
 
@@ -26,6 +28,7 @@ def login():
             )
 
             res = make_response(jsonify({
+                'status': 'success',
                 'access_token': access_token
             }))
 
@@ -61,10 +64,30 @@ def register():
 
 @app.route('/refresh_tokens', methods=['GET'])
 def refresh_tokens():
-    result = token_service.refresh_access_token(
-        request.cookies.get('refresh_token'), request.headers.get('User-Agent')
-    )
+    refresh_token = request.cookies.get('refresh_token')
+    user_agent = request.headers.get('User-Agent')
+    result = token_service.refresh_access_token(refresh_token, user_agent)
+    if result['status'] == 'failure':
+        session_services.remove_session(refresh_token)
+        res = make_response(result)
+        res.set_cookie('refresh_token', '', expires=0)
+        return res
+
     return jsonify(result)
+
+
+@app.route('/get_data', methods=['GET'])
+def get_data():
+    access_token = request.headers['Authorization']
+    try:
+        decoded_data = token_service.decode_access_token(access_token)
+    except Exception:
+        return abort(401)
+
+    # TODO: Check expired
+    user_id = decoded_data['user_id']
+    user_data = data_api.get_data(user_id)
+    return jsonify(user_data)
 
 
 if __name__ == '__main__':

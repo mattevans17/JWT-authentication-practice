@@ -28,3 +28,10 @@ def get_user_id(refresh_token):
             return session['user_id']
 
     return None
+
+
+def remove_session(refresh_token):
+    for idx in range(len(sessions)):
+        if sessions[idx]['refresh_token'] == refresh_token:
+            sessions.pop(idx)
+            return
