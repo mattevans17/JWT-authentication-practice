@@ -1,4 +1,5 @@
 import server.configs.JWT as JWT_CONFIG
+from server.utils import date_time
 
 sessions = []
 
@@ -10,7 +11,8 @@ def create_session(user_id, refresh_token, fingerprint):
     sessions.append({
         'user_id': user_id,
         'refresh_token': refresh_token,
-        'fingerprint': fingerprint
+        'fingerprint': fingerprint,
+        'expires_in': date_time.calc_exp(JWT_CONFIG.REFRESH_TOKEN_EXP_SEC)
     })
 
 
@@ -22,10 +24,10 @@ def check_fingerprint(refresh_token, fingerprint):
     return False
 
 
-def get_user_id(refresh_token):
+def get_session(refresh_token):
     for session in sessions:
         if session['refresh_token'] == refresh_token:
-            return session['user_id']
+            return session
 
     return None
 

@@ -7,7 +7,6 @@ $(document).ready(function() {
             data: $(this).serialize(),
             success: function(data) {
                 if (data.status === 'success') {
-                    alert('Access token: ' + data.access_token)
                     localStorage.setItem('access_token', data.access_token)
                     window.location.replace('/')
                 } else {
@@ -24,7 +23,6 @@ $(document).ready(function() {
             type: "POST",
             data: $(this).serialize(),
             success: function(data) {
-                alert('Access token: ' + data.access_token)
                 localStorage.setItem('access_token', data.access_token)
                 window.location.replace('/')
             }
@@ -38,7 +36,6 @@ $(document).ready(function() {
             type: "GET",
             success: function(data) {
                 if (data.status === 'success') {
-                    alert('New access token: ' + data.access_token)
                     localStorage.setItem('access_token', data.access_token)
                 } else {
                     alert(data.message)
@@ -59,7 +56,6 @@ $(document).ready(function() {
                 )
             },
             success: function(data) {
-                console.log(data)
                 for (const car of data.cars) {
                     $("#cars").append(
                         `<p>${car.firm} ${car.model}</p>`

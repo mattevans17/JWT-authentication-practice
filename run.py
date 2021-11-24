@@ -3,6 +3,7 @@ import server.services.account_service as account_service
 import server.services.auth_service as auth_service
 import server.services.token_service as token_service
 import server.configs.SERVER as SERVER_CONFIG
+import server.configs.JWT as JWT_CONFIG
 import server.services.data_api as data_api
 import server.services.session_service as session_service
 import server.utils.date_time as date_time
@@ -33,7 +34,7 @@ def login():
                 'access_token': access_token
             }))
 
-            res.set_cookie('refresh_token', refresh_token)
+            res.set_cookie('refresh_token', refresh_token, max_age=JWT_CONFIG.REFRESH_TOKEN_EXP_SEC)
 
             return res
 
@@ -58,7 +59,7 @@ def register():
             'access_token': access_token
         }))
 
-        res.set_cookie('refresh_token', refresh_token)
+        res.set_cookie('refresh_token', refresh_token, max_age=JWT_CONFIG.REFRESH_TOKEN_EXP_SEC)
 
         return res
 

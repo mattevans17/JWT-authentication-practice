@@ -24,25 +24,31 @@ def generate_refresh_token():
 
 
 def refresh_access_token(refresh_token, user_agent):
-    user_id = session_service.get_user_id(refresh_token)
+    invalid_token_error = {
+        'status': 'failure',
+        'message': 'invalid token'
+    }
 
-    if not user_id:
-        return {
-            'status': 'failure',
-            'message': 'invalid token'
-        }
+    if not refresh_token:
+        return invalid_token_error
+
+    session = session_service.get_session(refresh_token)
+
+    if not session:
+        return invalid_token_error
+
+    expired = date_time.check_expired(session['expires_in'])
+    if expired:
+        return invalid_token_error
 
     is_same_fingerprint = session_service.check_fingerprint(
         refresh_token, crypto.encode_user_agent(user_agent)
     )
 
     if not is_same_fingerprint:
-        return {
-            'status': 'failure',
-            'message': 'invalid fingerprint'
-        }
+        return invalid_token_error
 
     return {
         'status': 'success',
-        'access_token': generate_access_token(user_id)
+        'access_token': generate_access_token(session['user_id'])
     }
