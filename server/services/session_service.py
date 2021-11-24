@@ -1,10 +1,10 @@
-import server.config as config
+import server.configs.JWT as JWT_CONFIG
 
 sessions = []
 
 
 def create_session(user_id, refresh_token, fingerprint):
-    if len(sessions) == config.MAX_REFRESH_TOKENS_NUMBER:
+    if len(sessions) == JWT_CONFIG.MAX_REFRESH_TOKENS_NUMBER:
         sessions.clear()
 
     sessions.append({

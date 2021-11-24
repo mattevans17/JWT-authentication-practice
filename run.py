@@ -2,9 +2,10 @@ from flask import Flask, request, jsonify, make_response, render_template, abort
 import server.services.account_service as account_service
 import server.services.auth_service as auth_service
 import server.services.token_service as token_service
-import server.config as config
+import server.configs.SERVER as SERVER_CONFIG
 import server.services.data_api as data_api
-import server.services.session_services as session_services
+import server.services.session_service as session_service
+import server.utils.date_time as date_time
 
 app = Flask(__name__, template_folder='client/', static_folder='client/')
 
@@ -68,7 +69,7 @@ def refresh_tokens():
     user_agent = request.headers.get('User-Agent')
     result = token_service.refresh_access_token(refresh_token, user_agent)
     if result['status'] == 'failure':
-        session_services.remove_session(refresh_token)
+        session_service.remove_session(refresh_token)
         res = make_response(result)
         res.set_cookie('refresh_token', '', expires=0)
         return res
@@ -84,11 +85,18 @@ def get_data():
     except Exception:
         return abort(401)
 
-    # TODO: Check expired
     user_id = decoded_data['user_id']
+    is_expired = date_time.check_expired(decoded_data['exp'])
+    if is_expired:
+        return abort(401)
+
     user_data = data_api.get_data(user_id)
     return jsonify(user_data)
 
 
 if __name__ == '__main__':
-    app.run(host=config.HOST, port=config.PORT, debug=config.DEBUG)
+    app.run(
+        host=SERVER_CONFIG.HOST,
+        port=SERVER_CONFIG.PORT,
+        debug=SERVER_CONFIG.DEBUG
+    )

@@ -1,22 +1,22 @@
 import uuid
 from jwt import encode, decode
-import server.services.session_services as session_services
+import server.services.session_service as session_service
 import server.utils.crypto as crypto
-
-JWT_SECRET = 'secretpassphrase'
-JWT_ALGORITHM = 'HS256'
+import server.utils.date_time as date_time
+import server.configs.JWT as JWT_CONFIG
 
 
 def generate_access_token(user_id):
     payload = {
-        'user_id': user_id
+        'user_id': user_id,
+        'exp': date_time.calc_exp(JWT_CONFIG.ACCESS_TOKEN_EXP_SEC)
     }
 
-    return encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    return encode(payload, JWT_CONFIG.SECRET, algorithm=JWT_CONFIG.ALGORITHM)
 
 
 def decode_access_token(access_token):
-    return decode(access_token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+    return decode(access_token, JWT_CONFIG.SECRET, algorithms=[JWT_CONFIG.ALGORITHM])
 
 
 def generate_refresh_token():
@@ -24,7 +24,7 @@ def generate_refresh_token():
 
 
 def refresh_access_token(refresh_token, user_agent):
-    user_id = session_services.get_user_id(refresh_token)
+    user_id = session_service.get_user_id(refresh_token)
 
     if not user_id:
         return {
@@ -32,7 +32,7 @@ def refresh_access_token(refresh_token, user_agent):
             'message': 'invalid token'
         }
 
-    is_same_fingerprint = session_services.check_fingerprint(
+    is_same_fingerprint = session_service.check_fingerprint(
         refresh_token, crypto.encode_user_agent(user_agent)
     )
 
