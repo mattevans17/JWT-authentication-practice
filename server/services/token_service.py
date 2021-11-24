@@ -1,8 +1,8 @@
 import uuid
+from run import app
 from jwt import encode, decode
 import server.services.session_service as session_service
-import server.utils.crypto as crypto
-import server.utils.date_time as date_time
+from server.utils import crypto, date_time
 import server.configs.JWT as JWT_CONFIG
 
 
@@ -12,11 +12,11 @@ def generate_access_token(user_id):
         'exp': date_time.calc_exp(JWT_CONFIG.ACCESS_TOKEN_EXP_SEC)
     }
 
-    return encode(payload, JWT_CONFIG.SECRET, algorithm=JWT_CONFIG.ALGORITHM)
+    return encode(payload, app.config['SECRET_KEY'], algorithm=JWT_CONFIG.ALGORITHM)
 
 
 def decode_access_token(access_token):
-    return decode(access_token, JWT_CONFIG.SECRET, algorithms=[JWT_CONFIG.ALGORITHM])
+    return decode(access_token, app.config['SECRET_KEY'], algorithms=[JWT_CONFIG.ALGORITHM])
 
 
 def generate_refresh_token():

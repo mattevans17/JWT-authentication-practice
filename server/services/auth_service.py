@@ -1,7 +1,5 @@
-import server.services.token_service as token_service
+from server.services import session_service, account_service, token_service
 import server.utils.crypto as crypto
-import server.services.session_service as session_service
-import server.services.account_service as data_api
 
 
 def authorization(user_id, user_agent):
@@ -14,7 +12,7 @@ def authorization(user_id, user_agent):
 
 
 def authentication(login, password):
-    for account in data_api.accounts:
+    for account in account_service.accounts:
         if account['login'] == login and account['password'] == password:
             return {
                 'status': 'success',

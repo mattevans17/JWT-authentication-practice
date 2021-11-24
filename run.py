@@ -1,14 +1,15 @@
+import configparser
 from flask import Flask, request, jsonify, make_response, render_template, abort
-import server.services.account_service as account_service
-import server.services.auth_service as auth_service
-import server.services.token_service as token_service
 import server.configs.SERVER as SERVER_CONFIG
 import server.configs.JWT as JWT_CONFIG
-import server.services.data_api as data_api
-import server.services.session_service as session_service
+from server.services import data_api, token_service, auth_service, account_service, session_service
 import server.utils.date_time as date_time
 
+cfg = configparser.ConfigParser()
+cfg.read('app.cfg')
+
 app = Flask(__name__, template_folder='client/', static_folder='client/')
+app.config['SECRET_KEY'] = cfg.get('KEYS', 'SECRET_KEY', raw=False)
 
 
 @app.route('/', methods=['GET'])
