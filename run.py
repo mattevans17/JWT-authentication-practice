@@ -13,11 +13,6 @@ app = Flask(__name__, template_folder='client/', static_folder='client/')
 app.config['SECRET_KEY'] = cfg.get('KEYS', 'SECRET_KEY', raw=False)
 
 
-# HTTP status codes:
-# 403 - for authorization
-# 401 - for authentication errors
-
-
 def access_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -95,14 +90,17 @@ def register():
 def refresh_tokens():
     refresh_token = request.cookies.get('refresh_token')
     user_agent = request.headers.get('User-Agent')
-    result = token_service.refresh_access_token(refresh_token, user_agent)
+    result = token_service.refresh_tokens(refresh_token, user_agent)
     if result['status'] == 'failure':
-        session_service.remove_session(refresh_token)
         res = make_response(result)
         res.set_cookie('refresh_token', '', expires=0)
         return res
 
-    return jsonify(result)
+    refresh_token = result['refresh_token']
+    del result['refresh_token']
+    res = make_response(result)
+    res.set_cookie('refresh_token', refresh_token, max_age=JWT_CONFIG.REFRESH_TOKEN_EXP_SEC)
+    return res
 
 
 @app.route('/get_data', methods=['GET'])

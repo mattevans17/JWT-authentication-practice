@@ -23,7 +23,7 @@ def generate_refresh_token():
     return str(uuid.uuid4())
 
 
-def refresh_access_token(refresh_token, user_agent):
+def refresh_tokens(refresh_token, user_agent):
     invalid_token_error = {
         'status': 'failure',
         'message': 'invalid token'
@@ -35,10 +35,12 @@ def refresh_access_token(refresh_token, user_agent):
     session = session_service.get_session(refresh_token)
 
     if not session:
+        session_service.remove_session(refresh_token)
         return invalid_token_error
 
-    expired = date_time.check_expired(session['expires_in'])
-    if expired:
+    is_expired = date_time.check_expired(session['expires_in'])
+    if is_expired:
+        session_service.remove_session(refresh_token)
         return invalid_token_error
 
     is_same_fingerprint = session_service.check_fingerprint(
@@ -46,9 +48,19 @@ def refresh_access_token(refresh_token, user_agent):
     )
 
     if not is_same_fingerprint:
+        session_service.remove_session(refresh_token)
         return invalid_token_error
+
+    new_refresh_token = generate_refresh_token()
+    session_service.create_session(
+        session['user_id'],
+        new_refresh_token,
+        crypto.encode_user_agent(user_agent)
+    )
+    session_service.remove_session(refresh_token)
 
     return {
         'status': 'success',
+        'refresh_token': new_refresh_token,
         'access_token': generate_access_token(session['user_id'])
     }
