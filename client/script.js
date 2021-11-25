@@ -58,12 +58,12 @@ $(document).ready(function() {
             success: function(data) {
                 for (const car of data.cars) {
                     $("#cars").append(
-                        `<p>${car.firm} ${car.model}</p>`
+                        `<p>${car.brand} ${car.model}</p>`
                     )
                 }
             },
             error: function (data) {
-                if (data.status === 401) {
+                if (data.status === 403) {
                     refresh_tokens()
                 }
             }

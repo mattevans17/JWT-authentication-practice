@@ -1,4 +1,5 @@
 import configparser
+from functools import wraps
 from flask import Flask, request, jsonify, make_response, render_template, abort
 import server.configs.SERVER as SERVER_CONFIG
 import server.configs.JWT as JWT_CONFIG
@@ -10,6 +11,31 @@ cfg.read('app.cfg')
 
 app = Flask(__name__, template_folder='client/', static_folder='client/')
 app.config['SECRET_KEY'] = cfg.get('KEYS', 'SECRET_KEY', raw=False)
+
+
+# HTTP status codes:
+# 403 - for authorization
+# 401 - for authentication errors
+
+
+def access_token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        access_token = request.headers['Authorization']
+        if not access_token:
+            return jsonify({'message': 'token is missing'}), 403
+
+        try:
+            decoded_data = token_service.decode_access_token(access_token)
+        except:
+            return jsonify({'message': 'token is invalid'}), 403
+
+        is_expired = date_time.check_expired(decoded_data['exp'])
+        if is_expired:
+            return jsonify({'message': 'Token is expired'}), 403
+
+        return f(decoded_data, *args, **kwargs)
+    return decorated
 
 
 @app.route('/', methods=['GET'])
@@ -80,18 +106,9 @@ def refresh_tokens():
 
 
 @app.route('/get_data', methods=['GET'])
-def get_data():
-    access_token = request.headers['Authorization']
-    try:
-        decoded_data = token_service.decode_access_token(access_token)
-    except Exception:
-        return abort(401)
-
+@access_token_required
+def get_data(decoded_data):
     user_id = decoded_data['user_id']
-    is_expired = date_time.check_expired(decoded_data['exp'])
-    if is_expired:
-        return abort(401)
-
     user_data = data_api.get_data(user_id)
     return jsonify(user_data)
 

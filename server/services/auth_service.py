@@ -1,5 +1,5 @@
 from server.services import session_service, account_service, token_service
-import server.utils.crypto as crypto
+from server.utils import crypto
 
 
 def authorization(user_id, user_agent):
